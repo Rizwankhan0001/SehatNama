@@ -1,8 +1,7 @@
 import React from 'react';
-import { Star, MapPin, Clock, DollarSign } from 'lucide-react';
+import { Star, MapPin, Calendar, Award } from 'lucide-react';
 import { Doctor } from '../types';
 
-// Enhanced animation styles
 const animationStyles = `
   @keyframes slide-up {
     from {
@@ -15,8 +14,37 @@ const animationStyles = `
     }
   }
   
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 40px rgba(168, 85, 247, 0.4); }
+  }
+  
   .animate-slide-up {
     animation: slide-up 0.6s ease-out;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  .shimmer-effect {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
   }
 `;
 
@@ -82,108 +110,83 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment, onVi
   };
 
   return (
-    <div className="group relative bg-white rounded-3xl shadow-modern hover:shadow-glow border border-slate-100 overflow-hidden transform transition-all duration-500 hover:-translate-y-2 animate-slide-up" style={getAnimationDelay(index)}>
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <div className="group relative bg-white rounded-xl shadow-md hover:shadow-2xl border border-gray-200 overflow-hidden transition-all duration-500 hover:scale-[1.03] hover:-translate-y-1 max-w-2xl animate-slide-up" style={getAnimationDelay(index)}>
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-purple-50/20 to-pink-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      {/* Top Accent Bar */}
-      <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500"></div>
+      {/* Shimmer effect on hover */}
+      <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100"></div>
       
-      <div className="relative p-6">
-        {/* Header Section */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            {/* Doctor Avatar */}
-            <div className="relative">
-              <div className="w-20 h-20 gradient-primary rounded-3xl flex items-center justify-center text-white font-bold text-xl shadow-glow group-hover:scale-110 transition-transform duration-300 animate-pulse-glow">
-                {doctor.name.split(' ').map(n => n[0]).join('')}
+      {/* Top accent line with animation */}
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+      
+      <div className="relative p-4">
+        <div className="flex gap-4">
+          {/* Avatar with float animation */}
+          <div className="relative flex-shrink-0 animate-float">
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:rotate-3 animate-glow-pulse">
+              {doctor.name.split(' ').map(n => n[0]).join('')}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300">
+              <span className="text-white text-xs">✓</span>
+            </div>
+            {/* Pulse ring */}
+            <div className="absolute inset-0 rounded-xl border-2 border-blue-400 opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"></div>
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors duration-300">Dr. {doctor.name}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-medium group-hover:bg-blue-200 transition-colors duration-300">
+                    {doctor.specialty}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-gray-600 text-xs group-hover:text-purple-600 transition-colors duration-300">
+                    <Award className="w-3 h-3 group-hover:rotate-12 transition-transform duration-300" />
+                    {doctor.experience}y exp
+                  </span>
+                </div>
               </div>
-              <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-emerald-500 rounded-full border-3 border-white flex items-center justify-center shadow-lg">
-                <span className="text-white text-sm font-bold">✓</span>
+              <div className="flex items-center gap-1 bg-gradient-to-br from-yellow-50 to-orange-50 px-2 py-1 rounded-lg border border-yellow-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:animate-spin" />
+                <span className="text-sm font-bold text-gray-900">{doctor.rating}</span>
               </div>
-              <div className="absolute -top-1 -left-1 w-4 h-4 bg-yellow-400 rounded-full animate-pulse opacity-75"></div>
             </div>
             
-            {/* Doctor Info */}
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-slate-900 font-display group-hover:gradient-text transition-all duration-300 mb-1">
-                Dr. {doctor.name}
-              </h3>
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold border border-indigo-200">
-                  {doctor.specialty}
-                </span>
-                <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-xs font-medium">
-                  {doctor.experience}y exp
-                </span>
+            {/* Info Row */}
+            <div className="flex items-center gap-3 mb-3 text-xs text-gray-600">
+              <div className="flex items-center gap-1 group-hover:translate-x-1 transition-transform duration-300">
+                <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover:scale-125 transition-transform duration-300" />
+                <span className="group-hover:text-blue-600 transition-colors duration-300">{doctor.location.city}</span>
+                {distance && <span className="text-blue-600 font-medium group-hover:scale-110 transition-transform duration-300">• {distance}km</span>}
               </div>
-              <div className="text-slate-500 text-sm">{doctor.experience} years experience</div>
+              <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-md group-hover:bg-green-100 transition-colors duration-300">
+                <span className="text-green-600 font-semibold group-hover:scale-110 inline-block transition-transform duration-300">₹{doctor.consultationFee}</span>
+              </div>
+            </div>
+            
+            {/* Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => onBookAppointment(doctor._id)}
+                className="flex-1 relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-1.5 shadow-md hover:shadow-xl transform hover:scale-105 active:scale-95 group/btn"
+              >
+                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+                <Calendar className="w-4 h-4 group-hover/btn:rotate-12 transition-transform duration-300" />
+                <span className="relative">Book Now</span>
+              </button>
+              <button
+                onClick={() => onViewProfile(doctor._id)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:text-gray-900 rounded-lg text-sm font-medium transition-all transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+              >
+                View
+              </button>
             </div>
           </div>
-          
-          {/* Rating Badge */}
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-3 border border-yellow-200 text-center min-w-[80px]">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              {renderStars(doctor.rating)}
-            </div>
-            <div className="text-lg font-bold text-slate-900">{doctor.rating}</div>
-            <div className="text-xs text-slate-500">({doctor.reviewCount})</div>
-          </div>
-        </div>
-
-        {/* Info Cards Grid */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-3 border border-blue-100 group-hover:from-blue-100 group-hover:to-indigo-100 transition-all duration-300">
-            <div className="flex items-center space-x-2 mb-1">
-              <MapPin className="h-4 w-4 text-indigo-500" />
-              <span className="text-xs font-medium text-indigo-600">Location</span>
-            </div>
-            <div className="text-sm font-semibold text-slate-800 truncate">{doctor.location.city}</div>
-            {distance && (
-              <div className="text-xs text-indigo-600 font-medium mt-1">{distance} km away</div>
-            )}
-          </div>
-          
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-3 border border-emerald-100 group-hover:from-emerald-100 group-hover:to-green-100 transition-all duration-300">
-            <div className="flex items-center space-x-2 mb-1">
-              <DollarSign className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs font-medium text-emerald-600">Fee</span>
-            </div>
-            <div className="text-sm font-bold text-slate-800">₹{doctor.consultationFee}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-3 border border-purple-100 group-hover:from-purple-100 group-hover:to-pink-100 transition-all duration-300">
-            <div className="flex items-center space-x-2 mb-1">
-              <Clock className="h-4 w-4 text-purple-500" />
-              <span className="text-xs font-medium text-purple-600">Available</span>
-            </div>
-            <div className="text-sm font-semibold text-slate-800">Today</div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex space-x-3">
-          <button
-            onClick={() => onBookAppointment(doctor._id)}
-            className="flex-1 gradient-primary text-white py-3 px-4 rounded-2xl font-semibold text-sm shadow-glow hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
-          >
-            <span>📅</span>
-            <span>Book Appointment</span>
-          </button>
-          <button 
-            onClick={() => onViewProfile(doctor._id)}
-            className="bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-3 px-4 rounded-2xl font-medium text-sm hover:from-slate-200 hover:to-slate-300 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border border-slate-200"
-          >
-            <span>👁️</span>
-            <span>View Profile</span>
-          </button>
         </div>
       </div>
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-300"></div>
-      <div className="absolute bottom-4 left-4 w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500"></div>
-      <div className="absolute top-1/2 right-2 w-1 h-8 bg-gradient-to-b from-transparent via-indigo-200 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
     </div>
   );
 };
