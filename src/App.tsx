@@ -432,20 +432,23 @@ function AppContent() {
                                   </div>
                                   
                                   <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-                                    <div className="flex items-center space-x-2">
-                                      <span className="text-purple-600 text-lg">📍</span>
-                                      <div>
-                                        <p className="text-xs text-purple-600 font-medium">Location</p>
-                                        <p className="text-sm font-bold text-purple-800">{doctor.location.city}</p>
+                                    <div className="flex items-start space-x-2">
+                                      <span className="text-purple-600 text-lg mt-0.5">📍</span>
+                                      <div className="flex-1">
+                                        <p className="text-xs text-purple-600 font-medium mb-1">Location</p>
+                                        <p className="text-sm font-bold text-purple-800 leading-tight">{doctor.location.city}, {doctor.location.state}</p>
+                                        <p className="text-xs text-purple-600 mt-1">{doctor.location.address}</p>
                                         {userLocation && doctor.location.coordinates?.coordinates && (
-                                          <p className="text-xs text-purple-600 font-medium">
-                                            {calculateDistance(
-                                              userLocation.lat,
-                                              userLocation.lng,
-                                              doctor.location.coordinates.coordinates[1],
-                                              doctor.location.coordinates.coordinates[0]
-                                            ).toFixed(1)} km away
-                                          </p>
+                                          <div className="flex items-center mt-2 bg-purple-200 bg-opacity-50 rounded-lg px-2 py-1">
+                                            <span className="text-purple-700 text-xs font-bold">
+                                              📏 {calculateDistance(
+                                                userLocation.lat,
+                                                userLocation.lng,
+                                                doctor.location.coordinates.coordinates[1],
+                                                doctor.location.coordinates.coordinates[0]
+                                              ).toFixed(1)} km away
+                                            </span>
+                                          </div>
                                         )}
                                       </div>
                                     </div>
