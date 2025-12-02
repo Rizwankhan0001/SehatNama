@@ -1,185 +1,158 @@
-# 🚀 SehatNama Deployment Guide
+# SehatNama Deployment Guide
 
-## Complete Deployment to Vercel
+## Option 1: Vercel (Recommended for Quick Deploy)
 
-### Prerequisites
-- GitHub account
-- Vercel account (sign up at vercel.com)
-- MongoDB Atlas account (for database)
+### Frontend Deployment
+1. Install Vercel CLI: `npm i -g vercel`
+2. Login: `vercel login`
+3. Deploy: `vercel --prod`
 
----
+### Backend Deployment
+1. Go to backend: `cd backend`
+2. Deploy: `vercel --prod`
+3. Set environment variables in Vercel dashboard:
+   - `MONGODB_URI` (use MongoDB Atlas)
+   - `JWT_SECRET`
+   - `NODE_ENV=production`
 
-## Step 1: Setup MongoDB Atlas (Database)
+### MongoDB Atlas Setup
+1. Create account at https://www.mongodb.com/cloud/atlas
+2. Create cluster (free tier available)
+3. Get connection string
+4. Add to Vercel environment variables
 
-1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a free cluster
-3. Create a database user with password
-4. Whitelist all IPs: `0.0.0.0/0` (for Vercel)
-5. Get your connection string (looks like):
-   ```
-   mongodb+srv://username:password@cluster.mongodb.net/prescure_health
-   ```
+## Option 2: Render
 
----
+### Backend Deployment
+1. Go to https://render.com
+2. Create new Web Service
+3. Connect GitHub repository
+4. Settings:
+   - Build Command: `cd backend && npm install`
+   - Start Command: `cd backend && npm start`
+   - Environment Variables: Add `MONGODB_URI`, `JWT_SECRET`
 
-## Step 2: Deploy Backend API
+### Frontend Deployment
+1. Create new Static Site
+2. Settings:
+   - Build Command: `npm install && npm run build`
+   - Publish Directory: `build`
 
-### Option A: Via Vercel Dashboard
+## Option 3: Docker
 
-1. Go to [vercel.com](https://vercel.com/new)
-2. Import your GitHub repository: `Rizwankhan0001/SehatNama`
-3. Configure:
-   - **Project Name**: `sehetnama-api`
-   - **Root Directory**: `backend`
-   - **Framework Preset**: Other
-4. Add Environment Variables:
-   ```
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_super_secret_jwt_key_here_min_32_chars
-   NODE_ENV=production
-   PORT=5000
-   ```
-5. Click **Deploy**
-6. Copy your backend URL (e.g., `https://sehetnama-api.vercel.app`)
-
-### Option B: Via Vercel CLI
-
+### Local Testing
 ```bash
-cd backend
-vercel --prod
-# Follow prompts and add environment variables
+docker-compose up --build
 ```
 
----
-
-## Step 3: Deploy Frontend
-
-### Option A: Via Vercel Dashboard
-
-1. Go to [vercel.com](https://vercel.com/new)
-2. Import your GitHub repository again: `Rizwankhan0001/SehatNama`
-3. Configure:
-   - **Project Name**: `sehetnama`
-   - **Root Directory**: `./` (root)
-   - **Framework Preset**: Create React App
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
-4. Add Environment Variables:
-   ```
-   REACT_APP_API_URL=https://sehetnama-api.vercel.app/api
-   ```
-5. Click **Deploy**
-
-### Option B: Via Vercel CLI
-
+### Production Deploy
 ```bash
-# From root directory
-vercel --prod
-# Follow prompts and add environment variables
+# Build image
+docker build -t sehetnama .
+
+# Run container
+docker run -p 5000:5000 \
+  -e MONGODB_URI=your_mongodb_uri \
+  -e JWT_SECRET=your_secret \
+  sehetnama
 ```
 
----
+## Option 4: AWS EC2
 
-## Step 4: Seed Database (One-time)
-
-After backend is deployed, seed your database:
-
+### Setup
 ```bash
-# Install dependencies locally
-cd backend
+# SSH into EC2
+ssh -i your-key.pem ubuntu@your-ec2-ip
+
+# Install Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install MongoDB
+wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo systemctl start mongod
+
+# Clone and setup
+git clone https://github.com/Rizwankhan0001/SehatNama.git
+cd SehatNama
 npm install
+cd backend && npm install
 
-# Create .env file with production MongoDB URI
-echo "MONGODB_URI=your_mongodb_connection_string" > .env
+# Setup environment
+cp backend/.env.example backend/.env
+nano backend/.env  # Edit with your values
 
-# Run seed script
-npm run seed
+# Build frontend
+npm run build
+
+# Install PM2
+sudo npm install -g pm2
+
+# Start backend
+cd backend
+pm2 start src/server.js --name sehetnama-api
+pm2 startup
+pm2 save
+
+# Setup Nginx
+sudo apt-get install -y nginx
 ```
 
----
+### Nginx Configuration
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
 
-## Step 5: Update API URL in Frontend
+    location / {
+        root /home/ubuntu/SehatNama/build;
+        try_files $uri /index.html;
+    }
 
-1. Go to Vercel Dashboard → Your Frontend Project
-2. Settings → Environment Variables
-3. Update `REACT_APP_API_URL` with your actual backend URL
-4. Redeploy: Deployments → Click "..." → Redeploy
-
----
-
-## 🎉 Your Website is Live!
-
-- **Frontend**: `https://sehetnama.vercel.app`
-- **Backend API**: `https://sehetnama-api.vercel.app`
-
----
-
-## Auto-Deployment
-
-✅ Every push to `main` branch will automatically deploy to Vercel!
-
----
-
-## Troubleshooting
-
-### Backend Issues:
-- Check Vercel logs: Dashboard → Your Project → Deployments → View Function Logs
-- Verify MongoDB connection string
-- Ensure all environment variables are set
-
-### Frontend Issues:
-- Check if `REACT_APP_API_URL` is correct
-- Verify CORS is enabled in backend
-- Check browser console for errors
-
-### Database Connection:
-- Whitelist `0.0.0.0/0` in MongoDB Atlas
-- Verify connection string format
-- Check database user permissions
-
----
-
-## Custom Domain (Optional)
-
-1. Go to Vercel Dashboard → Your Project
-2. Settings → Domains
-3. Add your custom domain
-4. Follow DNS configuration instructions
-
----
-
-## Environment Variables Reference
-
-### Backend (.env):
-```
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/prescure_health
-JWT_SECRET=your_super_secret_jwt_key_minimum_32_characters_long
-NODE_ENV=production
-PORT=5000
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
-### Frontend:
-```
-REACT_APP_API_URL=https://your-backend-url.vercel.app/api
-```
+## Environment Variables Required
 
----
+- `PORT`: Backend port (default: 5000)
+- `MONGODB_URI`: MongoDB connection string
+- `JWT_SECRET`: Secret key for JWT tokens
+- `NODE_ENV`: production/development
+
+## Post-Deployment Checklist
+
+- [ ] Update API endpoint in frontend (if separate deployment)
+- [ ] Run database seed: `npm run seed`
+- [ ] Test all API endpoints
+- [ ] Configure CORS for production domain
+- [ ] Setup SSL certificate (Let's Encrypt)
+- [ ] Configure domain DNS
+- [ ] Setup monitoring (optional)
+- [ ] Enable error logging
 
 ## Quick Deploy Commands
 
 ```bash
-# Deploy backend
-cd backend && vercel --prod
+# Build frontend
+npm run build
 
-# Deploy frontend
-cd .. && vercel --prod
+# Test production build locally
+npx serve -s build
+
+# Deploy with Docker
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f
 ```
-
----
-
-## Support
-
-For issues, check:
-- Vercel Documentation: https://vercel.com/docs
-- MongoDB Atlas Docs: https://docs.atlas.mongodb.com
-- GitHub Issues: https://github.com/Rizwankhan0001/SehatNama/issues
