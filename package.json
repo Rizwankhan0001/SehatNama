@@ -22,7 +22,7 @@
     "start:frontend": "react-scripts start",
     "start:backend": "cd backend && npm run dev",
     "start:all": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "build": "set CI=false && react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "seed": "cd backend && npm run seed"
