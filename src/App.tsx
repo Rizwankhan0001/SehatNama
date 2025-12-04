@@ -16,6 +16,7 @@ function App() {
   
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [sortBy, setSortBy] = useState<string>('rating');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -289,11 +290,33 @@ function App() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-gray-600 font-medium">Sort by:</span>
-                        <select className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg px-3 py-1 text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                          <option>⭐ Rating</option>
-                          <option>📍 Distance</option>
-                          <option>💰 Price</option>
-                          <option>🎆 Experience</option>
+                        <select 
+                          value={sortBy}
+                          onChange={(e) => {
+                            setSortBy(e.target.value);
+                            const sorted = [...filteredDoctors].sort((a, b) => {
+                              switch(e.target.value) {
+                                case 'rating': return b.rating - a.rating;
+                                case 'price': return a.consultationFee - b.consultationFee;
+                                case 'experience': return b.experience - a.experience;
+                                case 'distance':
+                                  if (userLocation) {
+                                    const distA = calculateDistance(userLocation.lat, userLocation.lng, a.location.coordinates.coordinates[1], a.location.coordinates.coordinates[0]);
+                                    const distB = calculateDistance(userLocation.lat, userLocation.lng, b.location.coordinates.coordinates[1], b.location.coordinates.coordinates[0]);
+                                    return distA - distB;
+                                  }
+                                  return 0;
+                                default: return 0;
+                              }
+                            });
+                            setFilteredDoctors(sorted);
+                          }}
+                          className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg px-3 py-1 text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="rating">⭐ Rating</option>
+                          <option value="distance">📍 Distance</option>
+                          <option value="price">💰 Price</option>
+                          <option value="experience">🎆 Experience</option>
                         </select>
                       </div>
                     </div>
