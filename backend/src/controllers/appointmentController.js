@@ -1,6 +1,7 @@
 const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
 const User = require('../models/User');
+const { getDayName, getSlots } = require('../utils/appointmentSlots');
 
 // Book appointment
 const bookAppointment = async (req, res) => {
@@ -19,6 +20,20 @@ const bookAppointment = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Doctor not found'
+      });
+    }
+
+    // Only permit actual 30-minute slots within this doctor's configured hours.
+    const dayName = getDayName(appointmentDate);
+    const availableHours = (doctor.availability || []).find(item => item.day === dayName);
+    const scheduledSlots = getSlots(availableHours);
+    const validSlot = scheduledSlots.some(
+      slot => slot.startTime === timeSlot?.startTime && slot.endTime === timeSlot?.endTime
+    );
+    if (!validSlot) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid appointment date or time slot for this doctor'
       });
     }
 
@@ -158,11 +173,18 @@ const cancelAppointment = async (req, res) => {
 const getAvailableSlots = async (req, res) => {
   try {
     const { doctorId, date } = req.query;
-
     if (!doctorId || !date) {
       return res.status(400).json({
         success: false,
         message: 'Doctor ID and date are required'
+      });
+    }
+
+    const dayName = getDayName(date);
+    if (!dayName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid appointment date'
       });
     }
 
@@ -174,57 +196,22 @@ const getAvailableSlots = async (req, res) => {
       });
     }
 
-    // Get day of week
-    const appointmentDate = new Date(date);
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayName = dayNames[appointmentDate.getDay()];
-
-    // Check if doctor is available on this day
-    const availability = doctor.availability.find(avail => avail.day === dayName);
-    if (!availability) {
-      return res.json({
-        success: true,
-        data: []
-      });
+    const hours = (doctor.availability || []).find(item => item.day === dayName);
+    if (!hours) {
+      return res.json({ success: true, data: [] });
     }
 
-    // Generate time slots (30-minute intervals)
-    const slots = [];
-    const startTime = availability.startTime;
-    const endTime = availability.endTime;
-    
-    // Simple time slot generation (you can make this more sophisticated)
-    const timeSlots = [
-      { startTime: '09:00', endTime: '09:30' },
-      { startTime: '09:30', endTime: '10:00' },
-      { startTime: '10:00', endTime: '10:30' },
-      { startTime: '10:30', endTime: '11:00' },
-      { startTime: '11:00', endTime: '11:30' },
-      { startTime: '11:30', endTime: '12:00' },
-      { startTime: '14:00', endTime: '14:30' },
-      { startTime: '14:30', endTime: '15:00' },
-      { startTime: '15:00', endTime: '15:30' },
-      { startTime: '15:30', endTime: '16:00' },
-      { startTime: '16:00', endTime: '16:30' },
-      { startTime: '16:30', endTime: '17:00' }
-    ];
-
-    // Check which slots are already booked
     const bookedAppointments = await Appointment.find({
       doctor: doctorId,
-      appointmentDate: appointmentDate,
+      appointmentDate: new Date(date),
       status: { $in: ['scheduled', 'confirmed'] }
     });
 
-    const bookedSlots = bookedAppointments.map(apt => apt.timeSlot.startTime);
-    const availableSlots = timeSlots.filter(slot => !bookedSlots.includes(slot.startTime));
-
-    res.json({
-      success: true,
-      data: availableSlots
-    });
+    const bookedStartTimes = bookedAppointments.map(apt => apt.timeSlot.startTime);
+    const availableSlots = getSlots(hours, bookedStartTimes);
+    return res.json({ success: true, data: availableSlots });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Error fetching available slots',
       error: error.message
