@@ -6,10 +6,10 @@ backend/node_modules/
 build/
 dist/
 
-# Environment
+# Environment files (never commit private configuration)
 .env
-.env.local
-.env.production.local
+.env.*
+!.env.example
 
 # Logs
 npm-debug.log*

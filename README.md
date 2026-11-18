@@ -79,12 +79,12 @@ Consult `backend/src/routes/` for request methods, validation rules, and protect
 
 The repository includes `DEPLOYMENT.md`, `Dockerfile`, `docker-compose.yml`, `render.yaml`, and `vercel.json`. Verify hosting configuration, environment variables, and build compatibility before deploying.
 
-## Engineering improvements planned
+## Engineering status and next steps
 
-- Remove tracked `node_modules/` and `build/` files after verifying a clean rebuild.
-- Check whether any tracked environment files contain real credentials; rotate anything exposed.
-- Add integration tests and CI that verifies builds on pull requests.
-- Add screenshots, a verified demo URL, and accessibility/performance checks.
+- Dependency folders and generated build output were removed **from version control**. Use `npm ci` locally to restore dependencies and `npm run build` to generate the frontend build.
+- The tracked `backend/.env` was removed from the current branch. Check historical commits for secrets and rotate any previously used credentials.
+- GitHub Actions now installs dependencies and validates the frontend build and backend entry-point syntax on pull requests. These checks do not constitute end-to-end tests.
+- Next: add endpoint/integration tests, screenshots, a verified demo URL, and accessibility/performance checks.
 
 ## Security and privacy
 
