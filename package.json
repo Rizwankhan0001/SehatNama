@@ -6,7 +6,7 @@
     "@types/node": "^16.18.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "autoprefixer": "^10.6.2",
+    "autoprefixer": "^10.7.0",
     "concurrently": "^8.2.0",
     "lucide-react": "^0.263.0",
     "postcss": "^8.5.33",
